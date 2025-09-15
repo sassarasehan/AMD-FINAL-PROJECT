@@ -11,7 +11,8 @@ import {
   ActivityIndicator,
   Animated,
   StatusBar,
-  Alert
+  Alert,
+  SectionList
 } from "react-native";
 import { MaterialIcons, FontAwesome5, Ionicons, Feather } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,7 +23,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { RectButton } from 'react-native-gesture-handler';
-import { SwipeListView } from 'react-native-swipe-list-view';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width, height } = Dimensions.get('window');
 
@@ -129,18 +130,43 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ item, onDelete, onUpd
   );
 };
 
+// Group transactions by month
+const groupTransactionsByMonth = (transactions: Transaction[]) => {
+  const grouped: { [key: string]: Transaction[] } = {};
+  
+  transactions.forEach(transaction => {
+    const date = transaction.createdAt;
+    const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
+    const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    
+    if (!grouped[monthName]) {
+      grouped[monthName] = [];
+    }
+    
+    grouped[monthName].push(transaction);
+  });
+  
+  // Convert to section list format
+  return Object.keys(grouped).map(month => ({
+    title: month,
+    data: grouped[month]
+  }));
+};
 
-export default function Daily() {
+export default function Monthly() {
   const [modalVisible, setModalVisible] = useState(false);
   const [amount, setAmount] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [note, setNote] = useState("");
   const [type, setType] = useState<TransactionType>("expense");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [groupedTransactions, setGroupedTransactions] = useState<any[]>([]);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
 
   const { showLoader, hideLoader } = useLoader();
   const { user } = useAuth();
@@ -163,10 +189,15 @@ export default function Daily() {
     { id: "13", name: "Culture", icon: "palette", iconSet: "MaterialIcons", type: "expense", gradient: ["#d299c2", "#fef9d7"] },
   ];
 
+  // Filter categories by type
+  const incomeCategories = categories.filter(cat => cat.type === "income");
+  const expenseCategories = categories.filter(cat => cat.type === "expense");
+
   useEffect(() => {
     setLoading(true);
     const unsubscribe = getTransactionsRealtime((data) => {
       setTransactions(data);
+      setGroupedTransactions(groupTransactionsByMonth(data));
       setLoading(false);
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -176,6 +207,29 @@ export default function Daily() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Filter transactions by selected month
+  const filterTransactionsByMonth = () => {
+    return transactions.filter(transaction => {
+      const transactionDate = transaction.createdAt;
+      return transactionDate.getMonth() === selectedMonth.getMonth() && 
+             transactionDate.getFullYear() === selectedMonth.getFullYear();
+    });
+  };
+
+  // Calculate monthly totals
+  const calculateMonthlyTotals = () => {
+    const filteredTransactions = filterTransactionsByMonth();
+    const incomeTotal = filteredTransactions
+      .filter(t => t.type === "income")
+      .reduce((sum, t) => sum + t.amount, 0);
+    const expenseTotal = filteredTransactions
+      .filter(t => t.type === "expense")
+      .reduce((sum, t) => sum + t.amount, 0);
+    const netTotal = incomeTotal - expenseTotal;
+
+    return { incomeTotal, expenseTotal, netTotal };
+  };
 
   // Function to handle delete
   const handleDeleteTransaction = async (transaction: Transaction) => {
@@ -198,7 +252,6 @@ export default function Daily() {
               } else {
                 throw new Error("Transaction ID is missing");
               }
-              alert("Transaction deleted successfully!");
             } catch (error) {
               console.error("Error deleting transaction:", error);
               alert("Failed to delete transaction");
@@ -286,12 +339,8 @@ export default function Daily() {
     return <IconComponent name={category.icon} size={size} color={color} />;
   };
 
-  const incomeCategories = categories.filter(cat => cat.type === "income");
-  const expenseCategories = categories.filter(cat => cat.type === "expense");
-
-  const incomeTotal = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
-  const expenseTotal = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
-  const netTotal = incomeTotal - expenseTotal;
+  const { incomeTotal, expenseTotal, netTotal } = calculateMonthlyTotals();
+  const monthlyTransactions = filterTransactionsByMonth();
 
   // Update the modal title based on whether we're editing or creating
   const modalTitle = transactionToEdit ? "Edit Transaction" : "New Transaction";
@@ -313,30 +362,46 @@ export default function Daily() {
         {/* Header with Gradient */}
         <LinearGradient colors={['#667eea', '#764ba2']} style={styles.headerGradient}>
           <View style={styles.header}>
-            <Text style={styles.welcomeText}>Welcome back</Text>
-            <Text style={styles.dateText}>{new Date().toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              month: 'long', 
-              day: 'numeric' 
-            })}</Text>
+            <Text style={styles.welcomeText}>Monthly Overview</Text>
+            <TouchableOpacity 
+              style={styles.monthSelector}
+              onPress={() => setShowMonthPicker(true)}
+            >
+              <Text style={styles.monthText}>
+                {selectedMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </Text>
+              <MaterialIcons name="arrow-drop-down" size={24} color="white" />
+            </TouchableOpacity>
           </View>
         </LinearGradient>
+
+        {showMonthPicker && (
+          <DateTimePicker
+            value={selectedMonth}
+            mode="date"
+            display="spinner"
+            onChange={(event, date) => {
+              setShowMonthPicker(false);
+              if (date) setSelectedMonth(date);
+            }}
+          />
+        )}
 
         <Animated.ScrollView 
           style={[styles.scrollView, { opacity: fadeAnim }]}
           showsVerticalScrollIndicator={false}
         >
-          {/* Balance Cards */}
+          {/* Monthly Summary Cards */}
           <View style={styles.balanceContainer}>
             <View style={styles.mainBalanceCard}>
               <LinearGradient 
                 colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.1)']} 
                 style={styles.balanceGradient}
               >
-                <Text style={styles.balanceLabel}>Total Balance</Text>
+                <Text style={styles.balanceLabel}>Monthly Balance</Text>
                 <Text style={styles.balanceAmount}>Rs. {Math.abs(netTotal).toLocaleString()}</Text>
                 <Text style={[styles.balanceStatus, { color: netTotal >= 0 ? '#4ade80' : '#f87171' }]}>
-                  {netTotal >= 0 ? '+' : '-'} {((netTotal / (incomeTotal || 1)) * 100).toFixed(1)}% this month
+                  {netTotal >= 0 ? 'Surplus' : 'Deficit'} this month
                 </Text>
               </LinearGradient>
             </View>
@@ -360,18 +425,17 @@ export default function Daily() {
             </View>
           </View>
 
-          {/* Recent Transactions */}
+          {/* Monthly Transactions */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recent Activity</Text>
-              <TouchableOpacity style={styles.seeAllButton}>
-                <Text style={styles.seeAllText}>View All</Text>
-                <MaterialIcons name="arrow-forward-ios" size={14} color="#667eea" />
-              </TouchableOpacity>
+              <Text style={styles.sectionTitle}>
+                {selectedMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} Transactions
+              </Text>
+              <Text style={styles.transactionCount}>{monthlyTransactions.length} transactions</Text>
             </View>
 
-            {transactions.length > 0 ? (
-              transactions.slice(0, 6).map((item, index) => (
+            {monthlyTransactions.length > 0 ? (
+              monthlyTransactions.map((item, index) => (
                 <TransactionItem 
                   key={item.id || index} 
                   item={item} 
@@ -388,8 +452,8 @@ export default function Daily() {
                   style={styles.emptyStateContainer}
                 >
                   <MaterialIcons name="receipt-long" size={64} color="#9ca3af" />
-                  <Text style={styles.emptyStateTitle}>No transactions yet</Text>
-                  <Text style={styles.emptyStateText}>Start tracking your finances by adding your first transaction</Text>
+                  <Text style={styles.emptyStateTitle}>No transactions this month</Text>
+                  <Text style={styles.emptyStateText}>Add transactions to track your monthly finances</Text>
                 </LinearGradient>
               </View>
             )}
@@ -618,9 +682,14 @@ const styles = StyleSheet.create({
     color: "white",
     marginBottom: 4,
   },
-  dateText: {
-    fontSize: 16,
-    color: "rgba(255,255,255,0.8)",
+  monthSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  monthText: {
+    fontSize: 18,
+    color: "white",
+    marginRight: 4,
   },
   scrollView: {
     flex: 1,
@@ -703,15 +772,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#111827",
   },
-  seeAllButton: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  seeAllText: {
+  transactionCount: {
     fontSize: 14,
-    color: "#667eea",
-    fontWeight: "500",
-    marginRight: 4,
+    color: "#6b7280",
   },
   transactionCard: {
     flexDirection: "row",

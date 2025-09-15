@@ -6,20 +6,19 @@ import { MaterialIcons } from '@expo/vector-icons'
 
 type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
 
-const tabs: { Label: string; name: string; icon: MaterialIconName }[] = [
-    {Label: "Home", name: "home", icon: "transfer-within-a-station"}
-    , {Label: "Stats", name: "stats", icon: "show-chart"}
-    , {Label: "Accounts", name: "accounts", icon: "account-circle"}
-    , {Label: "Settings", name: "setting", icon: "settings"}
+const tabs: { Label: string; name: string; icon: MaterialIconName; options: { title: string } }[] = [
+    {Label: "Home", name: "home", icon: "transfer-within-a-station", options: { title: 'Dashboard' }},
+    {Label: "Stats", name: "stats", icon: "insights", options: { title: 'Statistics' }},
 ]
 
 const DashboardLayout = () => {
   return <Tabs>
-    {tabs.map(({name, icon, Label}) => (
+    {tabs.map(({name, icon, Label, options}) => (
       <Tabs.Screen
         key={name}
         name={name}
         options={{
+          title: options.title, 
           tabBarLabel: ({ focused }) => (
             <Text>{Label}</Text>
           ),
@@ -32,4 +31,4 @@ const DashboardLayout = () => {
   </Tabs>
 }
 
-export default DashboardLayout
+export default DashboardLayout;
