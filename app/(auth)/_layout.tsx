@@ -8,7 +8,7 @@ const AuthLayout = () => {
       headerShown: true, animation: 'slide_from_right'}}>
         <Stack.Screen
             name="login"
-            options={{ title: 'Hi Sass' }}
+            options={{ title: 'Login' }}
         />
         <Stack.Screen
             name="register"
