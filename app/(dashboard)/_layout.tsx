@@ -9,7 +9,8 @@ type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
 const tabs: { Label: string; name: string; icon: MaterialIconName; options: { title: string } }[] = [
     {Label: "Home", name: "home", icon: "transfer-within-a-station", options: { title: 'Dashboard' }},
     {Label: "Stats", name: "stats", icon: "insights", options: { title: 'Statistics' }},
-]
+    {Label: "Notes", name: "notes", icon: "notes", options: { title: 'Notes' }},
+  ]
 
 const DashboardLayout = () => {
   return <Tabs>
