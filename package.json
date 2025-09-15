@@ -62,6 +62,9 @@
     "react-native-webview": "13.13.5",
     "tailwindcss": "^3.4.17"
   },
+  "overrides": {
+    "@react-native-async-storage/async-storage": "2.1.2"
+  },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.0.10",
