@@ -24,6 +24,8 @@ import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler'
 import { RectButton } from 'react-native-gesture-handler';
 import { SwipeListView } from 'react-native-swipe-list-view';
 
+
+
 const { width, height } = Dimensions.get('window');
 
 interface Category {
@@ -304,6 +306,8 @@ export default function Daily() {
       </View>
     );
   }
+
+
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
