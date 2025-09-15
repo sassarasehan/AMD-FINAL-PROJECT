@@ -13,11 +13,10 @@ const Index = () => {
   const fadeValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Start animations
     Animated.loop(
       Animated.timing(spinValue, {
         toValue: 1,
-        duration: 3000,
+        duration: 5000,
         easing: Easing.linear,
         useNativeDriver: true,
       })
@@ -27,12 +26,12 @@ const Index = () => {
       Animated.sequence([
         Animated.timing(scaleValue, {
           toValue: 1.1,
-          duration: 800,
+          duration: 1000,
           useNativeDriver: true,
         }),
         Animated.timing(scaleValue, {
           toValue: 1,
-          duration: 800,
+          duration: 1000,
           useNativeDriver: true,
         }),
       ])
@@ -40,7 +39,7 @@ const Index = () => {
 
     Animated.timing(fadeValue, {
       toValue: 1,
-      duration: 1000,
+      duration: 1500,
       useNativeDriver: true,
     }).start();
 
@@ -152,7 +151,6 @@ const Index = () => {
         <Ionicons name="checkmark-circle" size={48} color="white" />
         <Text className="text-white text-lg mt-4">Redirecting...</Text>
         
-        {/* Decorative Elements */}
         <View className="flex-row mt-6">
           <Animated.View 
             style={{ 

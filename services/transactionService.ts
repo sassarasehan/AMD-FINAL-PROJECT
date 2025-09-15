@@ -17,10 +17,8 @@ import { db } from "@/firebase";
 import { Transaction } from "@/types/transaction";
 import { auth } from "@/firebase";
 
-// Collection reference
 export const transactionsRef = collection(db, "transactions");
 
-// Get all transactions for current user
 export const getAllTransactionsByUserId = async (userId: string) => {
   const q = query(transactionsRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
 
@@ -32,7 +30,6 @@ export const getAllTransactionsByUserId = async (userId: string) => {
   return transactionList;
 }
 
-// Get all transactions (admin only)
 export const getAllTransactions = async () => {
   const snapshot = await getDocs(transactionsRef);
   return snapshot.docs.map((transaction) => ({
@@ -41,7 +38,6 @@ export const getAllTransactions = async () => {
   })) as Transaction[];
 }
 
-// Get transaction by ID
 export const getTransactionById = async (id: string) => {
   const transactionDocRef = doc(db, "transactions", id);
   const snapshot = await getDoc(transactionDocRef);
@@ -53,7 +49,6 @@ export const getTransactionById = async (id: string) => {
     : null;
 }
 
-// Create transaction
 export const createTransaction = async (transaction: Omit<Transaction, "id">) => {
   const user = auth.currentUser;
   if (!user) {
@@ -69,20 +64,17 @@ export const createTransaction = async (transaction: Omit<Transaction, "id">) =>
   return docRef.id;
 }
 
-// Delete transaction
 export const deleteTransaction = async (id: string) => {
   const transactionDocRef = doc(db, "transactions", id);
   return deleteDoc(transactionDocRef);
 }
 
-// Update transaction
 export const updateTransaction = async (id: string, transaction: Partial<Transaction>) => {
   const transactionDocRef = doc(db, "transactions", id);
   const { id: _id, ...transactionData } = transaction; // remove id
   return updateDoc(transactionDocRef, transactionData);
 }
 
-// Real-time listener for current user's transactions
 export const getTransactionsRealtime = (
   callback: (transactions: Transaction[]) => void
 ) => {

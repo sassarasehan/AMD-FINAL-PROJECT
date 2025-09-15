@@ -44,7 +44,6 @@ const Register = () => {
             })
         ]).start();
 
-        // Keyboard event listeners
         const keyboardDidShowListener = Keyboard.addListener(
             Platform.OS === 'android' ? 'keyboardDidShow' : 'keyboardWillShow',
             () => setKeyboardVisible(true)
@@ -86,7 +85,7 @@ const Register = () => {
         }
     };
 
-    const toggleSecureText = (field) => {
+    const toggleSecureText = (field: 'password' | 'confirmPassword') => {
         setSecureText({
             ...secureText,
             [field]: !secureText[field]

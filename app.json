@@ -31,7 +31,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-       [
+      [
         "expo-image-picker",
         {
           "photosPermission": "The app accesses your photos to let you add them to your notes."
@@ -65,6 +65,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c7d22352-2453-401f-a8e0-c159d705f171"
+      }
     }
   }
 }

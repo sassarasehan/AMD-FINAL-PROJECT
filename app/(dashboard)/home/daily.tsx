@@ -19,12 +19,9 @@ import { createTransaction, getTransactionsRealtime, deleteTransaction, updateTr
 import { Transaction, TransactionType } from "@/types/transaction";
 import { useLoader } from "@/context/LoaderContext";
 import { useAuth } from "@/context/AuthContext";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { RectButton } from 'react-native-gesture-handler';
-import { SwipeListView } from 'react-native-swipe-list-view';
-
-
 
 const { width, height } = Dimensions.get('window');
 
@@ -34,10 +31,9 @@ interface Category {
   icon: string;
   iconSet: "MaterialIcons" | "FontAwesome5" | "Ionicons" | "Feather";
   type: TransactionType;
-  gradient: string[];
+  gradient: readonly [string, string, ...string[]];
 }
 
-// TransactionItem Component
 interface TransactionItemProps {
   item: Transaction;
   onDelete: (item: Transaction) => void;
@@ -46,7 +42,6 @@ interface TransactionItemProps {
   renderIcon: (category: Category, size?: number, color?: string) => React.ReactElement;
 }
 
-// TransactionItem Component
 const TransactionItem: React.FC<TransactionItemProps> = ({ item, onDelete, onUpdate, categories, renderIcon }) => {
   const transactionCategory = categories.find(cat => cat.name === item.category);
   let swipeableRef: Swipeable | null = null;
@@ -55,14 +50,8 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ item, onDelete, onUpd
     progress: Animated.AnimatedInterpolation<number>,
     dragX: Animated.AnimatedInterpolation<number>
   ) => {
-    const trans = dragX.interpolate({
-      inputRange: [0, 50, 100, 101],
-      outputRange: [-20, 0, 0, 1],
-    });
-    
     return (
       <View style={styles.actionsContainer}>
-        {/* Update button */}
         <RectButton 
           style={styles.updateAction} 
           onPress={() => {
@@ -91,16 +80,16 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ item, onDelete, onUpd
 
   return (
     <Swipeable
-      ref={ref => swipeableRef = ref}
+      ref={ref => { swipeableRef = ref; }}
       renderRightActions={renderRightActions}
       friction={2}
       rightThreshold={90}
-      rightOpenValue={-180} // Total width of both buttons
+      overshootRight={false}
     >
       <View style={styles.transactionCard}>
         <View style={styles.transactionLeft}>
           <LinearGradient 
-            colors={transactionCategory?.gradient || ['#e5e7eb', '#d1d5db']} 
+            colors={transactionCategory ? transactionCategory.gradient : ['#d1d5db', '#9ca3af'] as const} 
             style={styles.transactionIcon}
           >
             {transactionCategory && renderIcon(transactionCategory, 20, "white")}
@@ -131,7 +120,6 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ item, onDelete, onUpd
   );
 };
 
-
 export default function Daily() {
   const [modalVisible, setModalVisible] = useState(false);
   const [amount, setAmount] = useState("");
@@ -147,22 +135,21 @@ export default function Daily() {
   const { showLoader, hideLoader } = useLoader();
   const { user } = useAuth();
 
-  // Modern categories with gradients
   const categories: Category[] = [
-    { id: "1", name: "Salary", icon: "attach-money", iconSet: "MaterialIcons", type: "income", gradient: ["#667eea", "#764ba2"] },
-    { id: "2", name: "Freelance", icon: "laptop", iconSet: "FontAwesome5", type: "income", gradient: ["#f093fb", "#f5576c"] },
-    { id: "3", name: "Investment", icon: "trending-up", iconSet: "MaterialIcons", type: "income", gradient: ["#4facfe", "#00f2fe"] },
-    { id: "4", name: "Gift", icon: "card-giftcard", iconSet: "MaterialIcons", type: "income", gradient: ["#43e97b", "#38f9d7"] },
-    { id: "5", name: "Allowance", icon: "account-balance-wallet", iconSet: "MaterialIcons", type: "income", gradient: ["#fa709a", "#fee140"] },
-    
-    { id: "6", name: "Food", icon: "restaurant", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff9a9e", "#fecfef"] },
-    { id: "7", name: "Shopping", icon: "shopping-cart", iconSet: "FontAwesome5", type: "expense", gradient: ["#a8edea", "#fed6e3"] },
-    { id: "8", name: "Transport", icon: "directions-car", iconSet: "MaterialIcons", type: "expense", gradient: ["#ffecd2", "#fcb69f"] },
-    { id: "9", name: "Entertainment", icon: "theaters", iconSet: "MaterialIcons", type: "expense", gradient: ["#667eea", "#764ba2"] },
-    { id: "10", name: "Health", icon: "local-hospital", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff6b6b", "#feca57"] },
-    { id: "11", name: "Education", icon: "school", iconSet: "MaterialIcons", type: "expense", gradient: ["#4ecdc4", "#44a08d"] },
-    { id: "12", name: "Bills", icon: "receipt", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff8a80", "#ff5722"] },
-    { id: "13", name: "Culture", icon: "palette", iconSet: "MaterialIcons", type: "expense", gradient: ["#d299c2", "#fef9d7"] },
+    { id: "1", name: "Salary", icon: "attach-money", iconSet: "MaterialIcons", type: "income", gradient: ["#667eea", "#764ba2"] as const },
+    { id: "2", name: "Freelance", icon: "laptop", iconSet: "FontAwesome5", type: "income", gradient: ["#f093fb", "#f5576c"] as const },
+    { id: "3", name: "Investment", icon: "trending-up", iconSet: "MaterialIcons", type: "income", gradient: ["#4facfe", "#00f2fe"] as const },
+    { id: "4", name: "Gift", icon: "card-giftcard", iconSet: "MaterialIcons", type: "income", gradient: ["#43e97b", "#38f9d7"] as const },
+    { id: "5", name: "Allowance", icon: "account-balance-wallet", iconSet: "MaterialIcons", type: "income", gradient: ["#fa709a", "#fee140"] as const },
+
+    { id: "6", name: "Food", icon: "restaurant", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff9a9e", "#fecfef"] as const },
+    { id: "7", name: "Shopping", icon: "shopping-cart", iconSet: "FontAwesome5", type: "expense", gradient: ["#a8edea", "#fed6e3"] as const },
+    { id: "8", name: "Transport", icon: "directions-car", iconSet: "MaterialIcons", type: "expense", gradient: ["#ffecd2", "#fcb69f"] as const },
+    { id: "9", name: "Entertainment", icon: "theaters", iconSet: "MaterialIcons", type: "expense", gradient: ["#667eea", "#764ba2"] as const },
+    { id: "10", name: "Health", icon: "local-hospital", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff6b6b", "#feca57"] as const },
+    { id: "11", name: "Education", icon: "school", iconSet: "MaterialIcons", type: "expense", gradient: ["#4ecdc4", "#44a08d"] as const },
+    { id: "12", name: "Bills", icon: "receipt", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff8a80", "#ff5722"] as const },
+    { id: "13", name: "Culture", icon: "palette", iconSet: "MaterialIcons", type: "expense", gradient: ["#d299c2", "#fef9d7"] as const },
   ];
 
   useEffect(() => {
@@ -179,7 +166,6 @@ export default function Daily() {
     return () => unsubscribe();
   }, []);
 
-  // Function to handle delete
   const handleDeleteTransaction = async (transaction: Transaction) => {
     Alert.alert(
       "Delete Transaction",
@@ -200,7 +186,6 @@ export default function Daily() {
               } else {
                 throw new Error("Transaction ID is missing");
               }
-              alert("Transaction deleted successfully!");
             } catch (error) {
               console.error("Error deleting transaction:", error);
               alert("Failed to delete transaction");
@@ -214,14 +199,12 @@ export default function Daily() {
     );
   };
 
-  // Function to handle update
   const handleUpdateTransaction = (transaction: Transaction) => {
     setTransactionToEdit(transaction);
     setAmount(transaction.amount.toString());
     setNote(transaction.note || "");
     setType(transaction.type);
     
-    // Find and set the category
     const category = categories.find(cat => cat.name === transaction.category);
     if (category) {
       setSelectedCategory(category);
@@ -240,7 +223,6 @@ export default function Daily() {
       showLoader();
       
       if (transactionToEdit) {
-        // Update existing transaction
         await updateTransaction(transactionToEdit.id ?? "", {
           amount: parseFloat(amount),
           category: selectedCategory.name,
@@ -251,7 +233,6 @@ export default function Daily() {
         });
         alert("Transaction updated successfully!");
       } else {
-        // Create new transaction
         await createTransaction({
           amount: parseFloat(amount),
           category: selectedCategory.name,
@@ -263,7 +244,6 @@ export default function Daily() {
         alert("Transaction added successfully!");
       }
 
-      // Reset form
       setAmount("");
       setSelectedCategory(null);
       setNote("");
@@ -307,15 +287,13 @@ export default function Daily() {
     );
   }
 
-
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#667eea" />
         
         {/* Header with Gradient */}
-        <LinearGradient colors={['#667eea', '#764ba2']} style={styles.headerGradient}>
+        <LinearGradient colors={['#667eea', '#764ba2'] as const} style={styles.headerGradient}>
           <View style={styles.header}>
             <Text style={styles.welcomeText}>Welcome back</Text>
             <Text style={styles.dateText}>{new Date().toLocaleDateString('en-US', { 
@@ -334,7 +312,7 @@ export default function Daily() {
           <View style={styles.balanceContainer}>
             <View style={styles.mainBalanceCard}>
               <LinearGradient 
-                colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.1)']} 
+                colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.1)'] as const} 
                 style={styles.balanceGradient}
               >
                 <Text style={styles.balanceLabel}>Total Balance</Text>
@@ -347,7 +325,7 @@ export default function Daily() {
 
             <View style={styles.summaryRow}>
               <View style={[styles.summaryCard]}>
-                <LinearGradient colors={['#4ade80', '#22c55e']} style={styles.summaryGradient}>
+                <LinearGradient colors={['#4ade80', '#22c55e'] as const} style={styles.summaryGradient}>
                   <MaterialIcons name="trending-up" size={24} color="white" />
                   <Text style={styles.summaryLabel}>Income</Text>
                   <Text style={styles.summaryAmount}>Rs. {incomeTotal.toLocaleString()}</Text>
@@ -355,7 +333,7 @@ export default function Daily() {
               </View>
 
               <View style={[styles.summaryCard]}>
-                <LinearGradient colors={['#f87171', '#ef4444']} style={styles.summaryGradient}>
+                <LinearGradient colors={['#f87171', '#ef4444'] as const} style={styles.summaryGradient}>
                   <MaterialIcons name="trending-down" size={24} color="white" />
                   <Text style={styles.summaryLabel}>Expenses</Text>
                   <Text style={styles.summaryAmount}>Rs. {expenseTotal.toLocaleString()}</Text>
@@ -388,7 +366,7 @@ export default function Daily() {
             ) : (
               <View style={styles.emptyState}>
                 <LinearGradient 
-                  colors={['rgba(102, 126, 234, 0.1)', 'rgba(118, 75, 162, 0.1)']} 
+                  colors={['rgba(102, 126, 234, 0.1)', 'rgba(118, 75, 162, 0.1)'] as const} 
                   style={styles.emptyStateContainer}
                 >
                   <MaterialIcons name="receipt-long" size={64} color="#9ca3af" />
@@ -413,7 +391,7 @@ export default function Daily() {
           }}
           activeOpacity={0.8}
         >
-          <LinearGradient colors={['#667eea', '#764ba2']} style={styles.fabGradient}>
+          <LinearGradient colors={['#667eea', '#764ba2'] as const} style={styles.fabGradient}>
             <MaterialIcons name="add" size={32} color="white" />
           </LinearGradient>
         </TouchableOpacity>
@@ -424,7 +402,7 @@ export default function Daily() {
           visible={modalVisible}
           presentationStyle="fullScreen"
         >
-          <LinearGradient colors={['#f8fafc', '#f1f5f9']} style={styles.modalContainer}>
+          <LinearGradient colors={['#f8fafc', '#f1f5f9'] as const} style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => {
                 setModalVisible(false);
@@ -447,7 +425,7 @@ export default function Daily() {
                   onPress={() => setType("income")}
                 >
                   <LinearGradient 
-                    colors={type === "income" ? ['#22c55e', '#16a34a'] : ['transparent', 'transparent']}
+                    colors={type === "income" ? ['#22c55e', '#16a34a'] as const : ['transparent', 'transparent'] as const}
                     style={styles.typeButtonGradient}
                   >
                     <MaterialIcons 
@@ -469,7 +447,7 @@ export default function Daily() {
                   onPress={() => setType("expense")}
                 >
                   <LinearGradient 
-                    colors={type === "expense" ? ['#ef4444', '#dc2626'] : ['transparent', 'transparent']}
+                    colors={type === "expense" ? ['#ef4444', '#dc2626'] as const : ['transparent', 'transparent'] as const}
                     style={styles.typeButtonGradient}
                   >
                     <MaterialIcons 
@@ -551,7 +529,7 @@ export default function Daily() {
                 disabled={!amount || !selectedCategory}
               >
                 <LinearGradient 
-                  colors={(!amount || !selectedCategory) ? ['#9ca3af', '#6b7280'] : ['#667eea', '#764ba2']}
+                  colors={(!amount || !selectedCategory) ? ['#9ca3af', '#6b7280'] as const : ['#667eea', '#764ba2'] as const}
                   style={styles.saveButtonGradient}
                 >
                   <Text style={styles.saveButtonText}>
@@ -730,7 +708,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    minHeight: 90, // Ensure consistent height
+    minHeight: 90,
   },
   transactionLeft: {
     flexDirection: "row",

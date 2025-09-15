@@ -33,7 +33,7 @@ interface Category {
   icon: string;
   iconSet: "MaterialIcons" | "FontAwesome5" | "Ionicons" | "Feather";
   type: TransactionType;
-  gradient: string[];
+  gradient: readonly [string, string, ...string[]];
 }
 
 // TransactionItem Component
@@ -90,16 +90,16 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ item, onDelete, onUpd
 
   return (
     <Swipeable
-      ref={ref => swipeableRef = ref}
+      ref={ref => { swipeableRef = ref; }}
       renderRightActions={renderRightActions}
       friction={2}
       rightThreshold={90}
-      rightOpenValue={-180} // Total width of both buttons
+      overshootRight={false}
     >
       <View style={styles.transactionCard}>
         <View style={styles.transactionLeft}>
           <LinearGradient 
-            colors={transactionCategory?.gradient || ['#e5e7eb', '#d1d5db']} 
+            colors={transactionCategory?.gradient || ['#e5e7eb', '#d1d5db'] as const} 
             style={styles.transactionIcon}
           >
             {transactionCategory && renderIcon(transactionCategory, 20, "white")}
@@ -171,25 +171,23 @@ export default function Monthly() {
   const { showLoader, hideLoader } = useLoader();
   const { user } = useAuth();
 
-  // Modern categories with gradients
   const categories: Category[] = [
-    { id: "1", name: "Salary", icon: "attach-money", iconSet: "MaterialIcons", type: "income", gradient: ["#667eea", "#764ba2"] },
-    { id: "2", name: "Freelance", icon: "laptop", iconSet: "FontAwesome5", type: "income", gradient: ["#f093fb", "#f5576c"] },
-    { id: "3", name: "Investment", icon: "trending-up", iconSet: "MaterialIcons", type: "income", gradient: ["#4facfe", "#00f2fe"] },
-    { id: "4", name: "Gift", icon: "card-giftcard", iconSet: "MaterialIcons", type: "income", gradient: ["#43e97b", "#38f9d7"] },
-    { id: "5", name: "Allowance", icon: "account-balance-wallet", iconSet: "MaterialIcons", type: "income", gradient: ["#fa709a", "#fee140"] },
+    { id: "1", name: "Salary", icon: "attach-money", iconSet: "MaterialIcons", type: "income", gradient: ["#667eea", "#764ba2"] as const },
+    { id: "2", name: "Freelance", icon: "laptop", iconSet: "FontAwesome5", type: "income", gradient: ["#f093fb", "#f5576c"] as const },
+    { id: "3", name: "Investment", icon: "trending-up", iconSet: "MaterialIcons", type: "income", gradient: ["#4facfe", "#00f2fe"] as const },
+    { id: "4", name: "Gift", icon: "card-giftcard", iconSet: "MaterialIcons", type: "income", gradient: ["#43e97b", "#38f9d7"] as const },
+    { id: "5", name: "Allowance", icon: "account-balance-wallet", iconSet: "MaterialIcons", type: "income", gradient: ["#fa709a", "#fee140"] as const },
     
-    { id: "6", name: "Food", icon: "restaurant", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff9a9e", "#fecfef"] },
-    { id: "7", name: "Shopping", icon: "shopping-cart", iconSet: "FontAwesome5", type: "expense", gradient: ["#a8edea", "#fed6e3"] },
-    { id: "8", name: "Transport", icon: "directions-car", iconSet: "MaterialIcons", type: "expense", gradient: ["#ffecd2", "#fcb69f"] },
-    { id: "9", name: "Entertainment", icon: "theaters", iconSet: "MaterialIcons", type: "expense", gradient: ["#667eea", "#764ba2"] },
-    { id: "10", name: "Health", icon: "local-hospital", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff6b6b", "#feca57"] },
-    { id: "11", name: "Education", icon: "school", iconSet: "MaterialIcons", type: "expense", gradient: ["#4ecdc4", "#44a08d"] },
-    { id: "12", name: "Bills", icon: "receipt", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff8a80", "#ff5722"] },
-    { id: "13", name: "Culture", icon: "palette", iconSet: "MaterialIcons", type: "expense", gradient: ["#d299c2", "#fef9d7"] },
+    { id: "6", name: "Food", icon: "restaurant", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff9a9e", "#fecfef"] as const },
+    { id: "7", name: "Shopping", icon: "shopping-cart", iconSet: "FontAwesome5", type: "expense", gradient: ["#a8edea", "#fed6e3"] as const },
+    { id: "8", name: "Transport", icon: "directions-car", iconSet: "MaterialIcons", type: "expense", gradient: ["#ffecd2", "#fcb69f"] as const },
+    { id: "9", name: "Entertainment", icon: "theaters", iconSet: "MaterialIcons", type: "expense", gradient: ["#667eea", "#764ba2"] as const },
+    { id: "10", name: "Health", icon: "local-hospital", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff6b6b", "#feca57"] as const },
+    { id: "11", name: "Education", icon: "school", iconSet: "MaterialIcons", type: "expense", gradient: ["#4ecdc4", "#44a08d"] as const },
+    { id: "12", name: "Bills", icon: "receipt", iconSet: "MaterialIcons", type: "expense", gradient: ["#ff8a80", "#ff5722"] as const },
+    { id: "13", name: "Culture", icon: "palette", iconSet: "MaterialIcons", type: "expense", gradient: ["#d299c2", "#fef9d7"] as const },
   ];
 
-  // Filter categories by type
   const incomeCategories = categories.filter(cat => cat.type === "income");
   const expenseCategories = categories.filter(cat => cat.type === "expense");
 
@@ -208,7 +206,6 @@ export default function Monthly() {
     return () => unsubscribe();
   }, []);
 
-  // Filter transactions by selected month
   const filterTransactionsByMonth = () => {
     return transactions.filter(transaction => {
       const transactionDate = transaction.createdAt;
@@ -217,7 +214,6 @@ export default function Monthly() {
     });
   };
 
-  // Calculate monthly totals
   const calculateMonthlyTotals = () => {
     const filteredTransactions = filterTransactionsByMonth();
     const incomeTotal = filteredTransactions
@@ -231,7 +227,6 @@ export default function Monthly() {
     return { incomeTotal, expenseTotal, netTotal };
   };
 
-  // Function to handle delete
   const handleDeleteTransaction = async (transaction: Transaction) => {
     Alert.alert(
       "Delete Transaction",
@@ -265,14 +260,12 @@ export default function Monthly() {
     );
   };
 
-  // Function to handle update
   const handleUpdateTransaction = (transaction: Transaction) => {
     setTransactionToEdit(transaction);
     setAmount(transaction.amount.toString());
     setNote(transaction.note || "");
     setType(transaction.type);
     
-    // Find and set the category
     const category = categories.find(cat => cat.name === transaction.category);
     if (category) {
       setSelectedCategory(category);
@@ -291,7 +284,6 @@ export default function Monthly() {
       showLoader();
       
       if (transactionToEdit) {
-        // Update existing transaction
         await updateTransaction(transactionToEdit.id ?? "", {
           amount: parseFloat(amount),
           category: selectedCategory.name,
@@ -302,7 +294,6 @@ export default function Monthly() {
         });
         alert("Transaction updated successfully!");
       } else {
-        // Create new transaction
         await createTransaction({
           amount: parseFloat(amount),
           category: selectedCategory.name,
@@ -314,7 +305,6 @@ export default function Monthly() {
         alert("Transaction added successfully!");
       }
 
-      // Reset form
       setAmount("");
       setSelectedCategory(null);
       setNote("");
@@ -342,7 +332,6 @@ export default function Monthly() {
   const { incomeTotal, expenseTotal, netTotal } = calculateMonthlyTotals();
   const monthlyTransactions = filterTransactionsByMonth();
 
-  // Update the modal title based on whether we're editing or creating
   const modalTitle = transactionToEdit ? "Edit Transaction" : "New Transaction";
 
   if (loading) {
@@ -359,8 +348,7 @@ export default function Monthly() {
       <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#667eea" />
         
-        {/* Header with Gradient */}
-        <LinearGradient colors={['#667eea', '#764ba2']} style={styles.headerGradient}>
+        <LinearGradient colors={['#667eea', '#764ba2'] as const} style={styles.headerGradient}>
           <View style={styles.header}>
             <Text style={styles.welcomeText}>Monthly Overview</Text>
             <TouchableOpacity 
@@ -391,11 +379,10 @@ export default function Monthly() {
           style={[styles.scrollView, { opacity: fadeAnim }]}
           showsVerticalScrollIndicator={false}
         >
-          {/* Monthly Summary Cards */}
           <View style={styles.balanceContainer}>
             <View style={styles.mainBalanceCard}>
               <LinearGradient 
-                colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.1)']} 
+                colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.1)'] as const} 
                 style={styles.balanceGradient}
               >
                 <Text style={styles.balanceLabel}>Monthly Balance</Text>
@@ -408,7 +395,7 @@ export default function Monthly() {
 
             <View style={styles.summaryRow}>
               <View style={[styles.summaryCard]}>
-                <LinearGradient colors={['#4ade80', '#22c55e']} style={styles.summaryGradient}>
+                <LinearGradient colors={['#4ade80', '#22c55e'] as const} style={styles.summaryGradient}>
                   <MaterialIcons name="trending-up" size={24} color="white" />
                   <Text style={styles.summaryLabel}>Income</Text>
                   <Text style={styles.summaryAmount}>Rs. {incomeTotal.toLocaleString()}</Text>
@@ -416,7 +403,7 @@ export default function Monthly() {
               </View>
 
               <View style={[styles.summaryCard]}>
-                <LinearGradient colors={['#f87171', '#ef4444']} style={styles.summaryGradient}>
+                <LinearGradient colors={['#f87171', '#ef4444'] as const} style={styles.summaryGradient}>
                   <MaterialIcons name="trending-down" size={24} color="white" />
                   <Text style={styles.summaryLabel}>Expenses</Text>
                   <Text style={styles.summaryAmount}>Rs. {expenseTotal.toLocaleString()}</Text>
@@ -425,7 +412,6 @@ export default function Monthly() {
             </View>
           </View>
 
-          {/* Monthly Transactions */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>
@@ -448,7 +434,7 @@ export default function Monthly() {
             ) : (
               <View style={styles.emptyState}>
                 <LinearGradient 
-                  colors={['rgba(102, 126, 234, 0.1)', 'rgba(118, 75, 162, 0.1)']} 
+                  colors={['rgba(102, 126, 234, 0.1)', 'rgba(118, 75, 162, 0.1)'] as const} 
                   style={styles.emptyStateContainer}
                 >
                   <MaterialIcons name="receipt-long" size={64} color="#9ca3af" />
@@ -460,7 +446,6 @@ export default function Monthly() {
           </View>
         </Animated.ScrollView>
 
-        {/* Modern Floating Action Button */}
         <TouchableOpacity 
           style={styles.fab} 
           onPress={() => {
@@ -473,18 +458,17 @@ export default function Monthly() {
           }}
           activeOpacity={0.8}
         >
-          <LinearGradient colors={['#667eea', '#764ba2']} style={styles.fabGradient}>
+          <LinearGradient colors={['#667eea', '#764ba2'] as const} style={styles.fabGradient}>
             <MaterialIcons name="add" size={32} color="white" />
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* Transaction Modal */}
         <Modal 
           animationType="slide" 
           visible={modalVisible}
           presentationStyle="fullScreen"
         >
-          <LinearGradient colors={['#f8fafc', '#f1f5f9']} style={styles.modalContainer}>
+          <LinearGradient colors={['#f8fafc', '#f1f5f9'] as const} style={styles.modalContainer}>
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => {
                 setModalVisible(false);
@@ -507,7 +491,7 @@ export default function Monthly() {
                   onPress={() => setType("income")}
                 >
                   <LinearGradient 
-                    colors={type === "income" ? ['#22c55e', '#16a34a'] : ['transparent', 'transparent']}
+                    colors={type === "income" ? ['#22c55e', '#16a34a'] as const : ['transparent', 'transparent'] as const}
                     style={styles.typeButtonGradient}
                   >
                     <MaterialIcons 
@@ -529,7 +513,7 @@ export default function Monthly() {
                   onPress={() => setType("expense")}
                 >
                   <LinearGradient 
-                    colors={type === "expense" ? ['#ef4444', '#dc2626'] : ['transparent', 'transparent']}
+                    colors={type === "expense" ? ['#ef4444', '#dc2626'] as const : ['transparent', 'transparent'] as const}
                     style={styles.typeButtonGradient}
                   >
                     <MaterialIcons 
@@ -547,7 +531,6 @@ export default function Monthly() {
                 </TouchableOpacity>
               </View>
 
-              {/* Amount Input */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Amount</Text>
                 <View style={styles.amountInputContainer}>
@@ -563,7 +546,6 @@ export default function Monthly() {
                 </View>
               </View>
 
-              {/* Category Selector */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Category</Text>
                 <TouchableOpacity 
@@ -587,7 +569,6 @@ export default function Monthly() {
                 </TouchableOpacity>
               </View>
 
-              {/* Note Input */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Note (Optional)</Text>
                 <TextInput
@@ -603,7 +584,6 @@ export default function Monthly() {
               </View>
             </ScrollView>
 
-            {/* Action Button */}
             <View style={styles.actionContainer}>
               <TouchableOpacity
                 style={[styles.saveButton, (!amount || !selectedCategory) && styles.saveButtonDisabled]}
@@ -611,7 +591,7 @@ export default function Monthly() {
                 disabled={!amount || !selectedCategory}
               >
                 <LinearGradient 
-                  colors={(!amount || !selectedCategory) ? ['#9ca3af', '#6b7280'] : ['#667eea', '#764ba2']}
+                  colors={(!amount || !selectedCategory) ? ['#9ca3af', '#6b7280'] as const : ['#667eea', '#764ba2'] as const}
                   style={styles.saveButtonGradient}
                 >
                   <Text style={styles.saveButtonText}>
@@ -623,7 +603,6 @@ export default function Monthly() {
           </LinearGradient>
         </Modal>
 
-        {/* Category Selection Modal */}
         <Modal transparent visible={showCategoryModal} animationType="fade">
           <View style={styles.categoryModalOverlay}>
             <View style={styles.categoryModal}>

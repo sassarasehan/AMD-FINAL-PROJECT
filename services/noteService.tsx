@@ -15,7 +15,6 @@ import {
 import { db } from '@/firebase';
 import { Note } from '@/types/note';
 
-// Convert Firestore data to Note object
 const noteConverter = {
   toFirestore: (note: Note): DocumentData => {
     return {
@@ -39,7 +38,6 @@ const noteConverter = {
   }
 };
 
-// Create a new note
 export const createNote = async (note: Omit<Note, 'id'>): Promise<string> => {
   try {
     const docRef = await addDoc(
@@ -53,7 +51,6 @@ export const createNote = async (note: Omit<Note, 'id'>): Promise<string> => {
   }
 };
 
-// Update an existing note
 export const updateNote = async (id: string, updates: Partial<Note>): Promise<void> => {
   try {
     const noteRef = doc(db, 'notes', id).withConverter(noteConverter);
@@ -67,7 +64,6 @@ export const updateNote = async (id: string, updates: Partial<Note>): Promise<vo
   }
 };
 
-// Delete a note
 export const deleteNote = async (id: string): Promise<void> => {
   try {
     const noteRef = doc(db, 'notes', id);
@@ -78,7 +74,6 @@ export const deleteNote = async (id: string): Promise<void> => {
   }
 };
 
-// Get real-time updates for user's notes
 export const getNotesRealtime = (
   userId: string, 
   callback: (notes: Note[]) => void,

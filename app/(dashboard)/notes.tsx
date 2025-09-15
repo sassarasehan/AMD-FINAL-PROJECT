@@ -1,4 +1,3 @@
-// screens/NotesScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -37,7 +36,6 @@ const NotesScreen: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const { user } = useAuth();
 
-  // Real-time listener
   useEffect(() => {
     if (!user) return;
 

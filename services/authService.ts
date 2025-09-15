@@ -4,10 +4,9 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, up
 export const register = (name:string, email:string, password:string) => {
     return createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-            // Set the display name after successful registration
             return updateProfile(userCredential.user, { displayName: name })
                 .then(() => {
-                    return userCredential.user; // Return the updated user
+                    return userCredential.user;
                 });
         });
 }
