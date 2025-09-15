@@ -16,8 +16,9 @@ export default function HomeLayout() {
       }}
     >
       <TopTabs.Screen name="daily" options={{ title: "Daily" }} />
-      <TopTabs.Screen name="calendar" options={{ title: "Calendar" }} />
       <TopTabs.Screen name="monthly" options={{ title: "Monthly" }} />
+      <TopTabs.Screen name="calendar" options={{ title: "Calendar" }} />
+      <TopTabs.Screen name="calculator" options={{ title: "Calculator" }} />
     </TopTabs>
   );
 }
